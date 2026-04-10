@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hermes-factoftheday
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fact-of-the-day
+  namespace: hermes-factoftheday
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fact-of-the-day
+  template:
+    metadata:
+      labels:
+        app: fact-of-the-day
+    spec:
+      containers:
+      - name: fact-of-the-day
+        image: ghcr.io/hermes-jarvis/fact-of-the-day:main
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fact-of-the-day-service
+  namespace: hermes-factoftheday
+spec:
+  type: NodePort
+  selector:
+    app: fact-of-the-day
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      nodePort: 30012
