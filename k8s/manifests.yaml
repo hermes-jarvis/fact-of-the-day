@@ -9,9 +9,7 @@ metadata:
   name: fact-of-the-day
   namespace: hermes-factoftheday
 spec:
-  replicas: 1
-  strategy:
-    type: Recreate
+  replicas: 2
   selector:
     matchLabels:
       app: fact-of-the-day
