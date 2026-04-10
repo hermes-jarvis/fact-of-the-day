@@ -18,6 +18,8 @@ spec:
       labels:
         app: fact-of-the-day
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: fact-of-the-day
         image: ghcr.io/hermes-jarvis/fact-of-the-day:main
