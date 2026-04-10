@@ -25,13 +25,6 @@ spec:
         image: ghcr.io/hermes-jarvis/fact-of-the-day:main
         ports:
         - containerPort: 3000
-        resources:
-          requests:
-            cpu: "50m"
-            memory: "64Mi"
-          limits:
-            cpu: "200m"
-            memory: "128Mi"
 ---
 apiVersion: v1
 kind: Service
