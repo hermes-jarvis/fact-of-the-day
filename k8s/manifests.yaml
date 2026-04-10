@@ -18,13 +18,18 @@ spec:
       labels:
         app: fact-of-the-day
     spec:
-      imagePullSecrets:
-      - name: ghcr-secret
       containers:
       - name: fact-of-the-day
         image: ghcr.io/hermes-jarvis/fact-of-the-day:main
         ports:
         - containerPort: 3000
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
 ---
 apiVersion: v1
 kind: Service
