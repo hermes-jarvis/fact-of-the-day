@@ -18,6 +18,21 @@ spec:
       labels:
         app: fact-of-the-day
     spec:
+      # hostNetwork bypasses Calico CNI (which is currently failing with an
+      # unauthorized token). Remove once the calico-node DaemonSet is restarted
+      # and Calico recovers.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - fact-of-the-day
+            topologyKey: kubernetes.io/hostname
       containers:
       - name: fact-of-the-day
         image: ghcr.io/hermes-jarvis/fact-of-the-day:main
@@ -25,14 +40,14 @@ spec:
         - containerPort: 3000
         livenessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 3000
           initialDelaySeconds: 10
           periodSeconds: 15
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 3000
           initialDelaySeconds: 5
           periodSeconds: 10
