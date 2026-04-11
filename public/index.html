@@ -5,48 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fact of the Day</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 2rem 1rem;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             color: white;
         }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
+        .page {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 680px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(10px);
-            padding: 3rem;
+            padding: 2rem 2.5rem;
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            max-width: 600px;
-            text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.18);
         }
-        h1 { margin-bottom: 2rem; font-weight: 300; letter-spacing: 2px; }
-        #fact { font-size: 1.5rem; line-height: 1.6; margin-bottom: 2rem; min-height: 100px; }
-        .footer { font-size: 0.8rem; opacity: 0.7; }
+        .card-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-bottom: 0.75rem;
+        }
+        /* Fact */
+        #fact {
+            font-size: 1.35rem;
+            line-height: 1.65;
+        }
+        /* Quote */
+        #quote-text {
+            font-size: 1.25rem;
+            line-height: 1.65;
+            font-style: italic;
+        }
+        #quote-author {
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            opacity: 0.75;
+            text-align: right;
+        }
+        /* Meme */
+        #meme-title {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            opacity: 0.85;
+        }
+        #meme-img {
+            display: block;
+            max-width: 100%;
+            border-radius: 12px;
+            margin: 0 auto;
+        }
+        #meme-link {
+            display: inline-block;
+            margin-top: 0.75rem;
+            font-size: 0.78rem;
+            opacity: 0.6;
+            color: white;
+            text-decoration: none;
+        }
+        #meme-link:hover { opacity: 1; }
+        .error {
+            opacity: 0.6;
+            font-size: 0.95rem;
+        }
+        .loading { opacity: 0.5; }
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            opacity: 0.5;
+            padding-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Fact of the Day</h1>
-        <div id="fact">Loading interesting fact...</div>
-        <div class="footer">Data provided by uselessfacts.jsph.pl</div>
+    <div class="page">
+        <div class="card">
+            <div class="card-label">Fact of the Day</div>
+            <div id="fact" class="loading">Loading interesting fact...</div>
+        </div>
+
+        <div class="card">
+            <div class="card-label">Motivational Quote</div>
+            <div id="quote-text" class="loading">Loading quote...</div>
+            <div id="quote-author"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-label">Meme of the Day</div>
+            <div id="meme-title" class="loading">Loading meme...</div>
+            <img id="meme-img" src="" alt="" style="display:none;" />
+            <a id="meme-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">View on Reddit</a>
+        </div>
+
+        <div class="footer">Powered by uselessfacts.jsph.pl &middot; zenquotes.io &middot; meme-api.com</div>
     </div>
+
     <script>
-        async function fetchFact() {
+        async function safeFetch(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        }
+
+        async function loadFact() {
+            const el = document.getElementById('fact');
             try {
-                const response = await fetch('/api/fact');
-                const data = await response.json();
-                document.getElementById('fact').innerText = data.text;
-            } catch (error) {
-                document.getElementById('fact').innerText = "Oops! Couldn't load the fact today.";
+                const data = await safeFetch('/api/fact');
+                el.classList.remove('loading');
+                el.innerText = data.text;
+            } catch {
+                el.classList.remove('loading');
+                el.classList.add('error');
+                el.innerText = "Couldn't load today's fact. Try again later.";
             }
         }
-        fetchFact();
+
+        async function loadQuote() {
+            const textEl = document.getElementById('quote-text');
+            const authorEl = document.getElementById('quote-author');
+            try {
+                const data = await safeFetch('/api/quote');
+                textEl.classList.remove('loading');
+                textEl.innerText = `"${data.text}"`;
+                authorEl.innerText = `— ${data.author}`;
+            } catch {
+                textEl.classList.remove('loading');
+                textEl.classList.add('error');
+                textEl.innerText = "Couldn't load today's quote. Try again later.";
+            }
+        }
+
+        async function loadMeme() {
+            const titleEl = document.getElementById('meme-title');
+            const imgEl = document.getElementById('meme-img');
+            const linkEl = document.getElementById('meme-link');
+            try {
+                const data = await safeFetch('/api/meme');
+                titleEl.classList.remove('loading');
+                titleEl.innerText = data.title;
+                imgEl.src = data.url;
+                imgEl.alt = data.title;
+                imgEl.style.display = 'block';
+                linkEl.href = data.postLink;
+                linkEl.style.display = 'inline-block';
+            } catch {
+                titleEl.classList.remove('loading');
+                titleEl.classList.add('error');
+                titleEl.innerText = "Couldn't load today's meme. Try again later.";
+            }
+        }
+
+        loadFact();
+        loadQuote();
+        loadMeme();
     </script>
 </body>
 </html>

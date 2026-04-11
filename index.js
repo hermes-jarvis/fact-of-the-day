@@ -40,6 +40,32 @@ app.get('/api/fact', async (req, res) => {
   }
 });
 
+app.get('/api/quote', async (req, res) => {
+  try {
+    const response = await axios.get('https://zenquotes.io/api/today', {
+      timeout: 5000,
+    });
+    const quote = response.data[0];
+    res.json({ text: quote.q, author: quote.a });
+  } catch (error) {
+    log('error', 'failed to fetch quote', { error: error.message });
+    res.status(500).json({ error: 'Failed to fetch quote' });
+  }
+});
+
+app.get('/api/meme', async (req, res) => {
+  try {
+    const response = await axios.get('https://meme-api.com/gimme', {
+      timeout: 5000,
+    });
+    const { title, url, postLink } = response.data;
+    res.json({ title, url, postLink });
+  } catch (error) {
+    log('error', 'failed to fetch meme', { error: error.message });
+    res.status(500).json({ error: 'Failed to fetch meme' });
+  }
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
